@@ -177,7 +177,7 @@ export default function Home() {
         borderTop: '1px solid var(--border-color)',
         color: 'var(--text-muted)', fontSize: '13px',
       }}>
-        © 2026 MindScope — Psychology Research by Riya | All responses are confidential
+        © 2026 MindScope |Psychology Research by Riya | All responses are confidential
       </footer>
     </div>
   );

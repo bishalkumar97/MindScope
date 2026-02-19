@@ -1,7 +1,7 @@
 {
   "name": "psychology-survey-server",
   "version": "1.0.0",
-  "description": "Backend API for Alex's Psychology Survey Website",
+  "description": "Backend API for Riya's Psychology Survey Website",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
