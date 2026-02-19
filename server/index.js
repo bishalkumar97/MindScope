@@ -18,6 +18,21 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
+// Ensure MongoDB is connected before handling any request
+let isConnected = false;
+app.use(async (req, res, next) => {
+  try {
+    if (!isConnected) {
+      await connectDB();
+      isConnected = true;
+    }
+    next();
+  } catch (err) {
+    console.error('DB connection error:', err);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+
 // Routes
 app.use('/api', surveyRoutes);
 
@@ -26,9 +41,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Connect to MongoDB then start server
-connectDB().then(() => {
+// For local development
+if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🧠 Psychology Survey API running on http://localhost:${PORT}`);
   });
-});
+}
+
+// Export for Vercel serverless
+module.exports = app;
