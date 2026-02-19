@@ -281,7 +281,7 @@ export default function DashboardPage() {
             <div style={{ height: '240px' }}>
               {stats?.genderDistribution?.length > 0
                 ? <Doughnut data={createDoughnutData(stats.genderDistribution, 'gender')} options={doughnutOptions} />
-                : <EmptyChart message="No gender data yet — share the survey!" />}
+                : <EmptyChart message="No gender data yet share the survey!" />}
             </div>
             <CustomLegend data={stats?.genderDistribution} labelKey="gender" />
           </div>
