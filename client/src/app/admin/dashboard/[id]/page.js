@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://mind-scope-87ko.vercel.app/api';
 
 export default function ResponseDetailPage() {
   const router = useRouter();

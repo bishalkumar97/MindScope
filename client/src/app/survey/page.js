@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://mind-scope-87ko.vercel.app/api';
 
 const characterMessages = {
   demographics: { text: "Hey there! I'm MindBot, your survey companion! Let's start with some basic info about you. Don't worry, everything is completely confidential!", mood: 'happy' },

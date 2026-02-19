@@ -9,7 +9,7 @@ import { Pie, Bar, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, DoughnutController, Filler);
 
-const API = 'http://localhost:5000/api';
+const API = 'https://mind-scope-87ko.vercel.app/api';
 
 const chartColors = [
   '#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#ef4444',
