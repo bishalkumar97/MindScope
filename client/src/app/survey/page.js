@@ -6,9 +6,9 @@ const API = 'https://mind-scope-87ko.vercel.app/api';
 
 const characterMessages = {
   demographics: { text: "Hey there! I'm MindBot, your survey companion! Let's start with some basic info about you. Don't worry, everything is completely confidential!", mood: 'happy' },
-  invalidation: { text: "Great job on the intro! Now let's explore your childhood emotional environment. Think about your experiences growing up — no right or wrong answers here.", mood: 'talking' },
+  invalidation: { text: "Great job on the intro! Now let's explore your childhood emotional environment. Think about your experiences growing up no right or wrong answers here.", mood: 'talking' },
   attachment: { text: "You're doing amazing! I can see you're really thoughtful. This section is about how you relate to others in close relationships.", mood: 'happy' },
-  emotion: { text: "Almost there, superstar! Last section — this one's about how you handle your emotions day to day. You've totally got this!", mood: 'excited' },
+  emotion: { text: "Almost there, superstar! Last section this one's about how you handle your emotions day to day. You've totally got this!", mood: 'excited' },
 };
 
 const encouragements = [

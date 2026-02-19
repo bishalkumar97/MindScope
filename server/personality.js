@@ -74,17 +74,17 @@ function analyzePersonality(responses) {
   summaryParts.push(`Your childhood emotional environment shows a ${invalidationLevel.toLowerCase()} level of invalidation.`);
 
   if (attachmentStyle === 'Secure') {
-    summaryParts.push('You tend to have a secure attachment style — you feel comfortable with closeness and interdependence in relationships.');
+    summaryParts.push('You tend to have a secure attachment style you feel comfortable with closeness and interdependence in relationships.');
   } else if (attachmentStyle === 'Anxious') {
-    summaryParts.push('You show tendencies toward an anxious attachment style — you may seek high levels of closeness and worry about abandonment.');
+    summaryParts.push('You show tendencies toward an anxious attachment style you may seek high levels of closeness and worry about abandonment.');
   } else {
-    summaryParts.push('You show tendencies toward an avoidant attachment style — you may value independence and feel less comfortable with emotional closeness.');
+    summaryParts.push('You show tendencies toward an avoidant attachment style you may value independence and feel less comfortable with emotional closeness.');
   }
 
   if (emotionRegulationTendency === 'Cognitive Reappraisal') {
-    summaryParts.push('You primarily regulate emotions through cognitive reappraisal — reframing situations to change how you feel. This is generally associated with healthier emotional outcomes.');
+    summaryParts.push('You primarily regulate emotions through cognitive reappraisal reframing situations to change how you feel. This is generally associated with healthier emotional outcomes.');
   } else if (emotionRegulationTendency === 'Expressive Suppression') {
-    summaryParts.push('You tend to regulate emotions through suppression — holding back the outward expression of feelings. While sometimes useful, over-reliance on this strategy may affect well-being.');
+    summaryParts.push('You tend to regulate emotions through suppression holding back the outward expression of feelings. While sometimes useful, over-reliance on this strategy may affect well-being.');
   } else {
     summaryParts.push('You use a balanced mix of cognitive reappraisal and emotional suppression strategies.');
   }
