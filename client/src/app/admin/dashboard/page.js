@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -72,6 +73,33 @@ export default function DashboardPage() {
       setUsers(usersData.users || []);
     } catch (err) { console.error('Dashboard load error:', err); }
     setLoading(false);
+  };
+
+  const handleDelete = async (e, userId) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this response? This action cannot be undone.')) return;
+    
+    setDeleting(userId);
+    try {
+      const res = await fetch(`${API}/responses/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      
+      if (res.ok) {
+        // Refresh data
+        await loadData();
+        alert('Response deleted successfully');
+      } else {
+        alert('Failed to delete response');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Error connecting to server');
+    }
+    setDeleting(null);
   };
 
   if (loading) {
@@ -199,7 +227,6 @@ export default function DashboardPage() {
     return <span className={`badge ${cls}`}>{value || '-'}</span>;
   };
 
-  // Compute most common values
   const mostCommon = (dist, key) => {
     if (!dist || dist.length === 0) return '-';
     const sorted = [...dist].sort((a, b) => b.count - a.count);
@@ -208,12 +235,12 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      {/* Nav */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '14px 28px', borderBottom: '1px solid var(--border-color)',
         background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(16px)',
         position: 'sticky', top: 0, zIndex: 100,
+        flexWrap: 'wrap', gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '24px' }}>🧠</span>
@@ -228,8 +255,8 @@ export default function DashboardPage() {
             fontSize: '11px', color: 'var(--blue-secondary)', fontWeight: 600,
           }}>ADMIN</span>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Welcome, Riya 👋</span>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'none' }}>Welcome, Riya 👋</span>
           <button className="btn-primary" onClick={() => {
             const link = document.createElement('a');
             link.href = `${API}/export-excel`;
@@ -241,10 +268,9 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div style={{ padding: '28px' }}>
-        {/* Stats Row */}
+      <div style={{ padding: 'clamp(16px, 4vw, 28px)' }}>
         <div className="animate-fadeInUp" style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
           gap: '16px', marginBottom: '28px',
         }}>
           {[
@@ -256,7 +282,7 @@ export default function DashboardPage() {
           ].map((s, i) => (
             <div key={i} className="stat-card" style={{ animation: `fadeInUp 0.4s ease-out ${i * 0.08}s both` }}>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>{s.icon}</div>
-              <div className="stat-value" style={{ fontSize: typeof s.value === 'number' ? '36px' : '18px' }}>
+              <div className="stat-value" style={{ fontSize: typeof s.value === 'number' ? 'clamp(24px, 5vw, 36px)' : '18px' }}>
                 {s.value}
               </div>
               <div className="stat-label">{s.label}</div>
@@ -264,12 +290,10 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Charts — Row 1: Doughnuts */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
           gap: '20px', marginBottom: '20px',
         }}>
-          {/* Gender Distribution — Doughnut */}
           <div className="chart-container blue animate-fadeInUp">
             <div className="chart-header">
               <div>
@@ -286,12 +310,11 @@ export default function DashboardPage() {
             <CustomLegend data={stats?.genderDistribution} labelKey="gender" />
           </div>
 
-          {/* Age Distribution — Doughnut */}
           <div className="chart-container purple animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
             <div className="chart-header">
               <div>
                 <div className="chart-title">🎂 Age Distribution</div>
-                <div className="chart-subtitle">Age groups of young adult respondents (18-30)</div>
+                <div className="chart-subtitle">Age groups of respondents (18-30)</div>
               </div>
             </div>
             <div style={{ height: '240px' }}>
@@ -302,7 +325,6 @@ export default function DashboardPage() {
             <CustomLegend data={stats?.ageDistribution} labelKey="ageGroup" />
           </div>
 
-          {/* Invalidation Levels — Pie */}
           <div className="chart-container amber animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
             <div className="chart-header">
               <div>
@@ -319,17 +341,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Charts — Row 2: Bar Charts */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
           gap: '20px', marginBottom: '20px',
         }}>
-          {/* Attachment Style — Bar */}
           <div className="chart-container green animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
             <div className="chart-header">
               <div>
                 <div className="chart-title">💝 Attachment Style Distribution</div>
-                <div className="chart-subtitle">Secure vs Anxious vs Avoidant attachment patterns</div>
+                <div className="chart-subtitle">Secure vs Anxious vs Avoidant patterns</div>
               </div>
             </div>
             <div style={{ height: '280px' }}>
@@ -340,12 +360,11 @@ export default function DashboardPage() {
             <CustomLegend data={stats?.attachmentDistribution} labelKey="attachmentStyle" />
           </div>
 
-          {/* Emotion Regulation — Bar */}
           <div className="chart-container cyan animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
             <div className="chart-header">
               <div>
                 <div className="chart-title">🎭 Emotion Regulation Strategies</div>
-                <div className="chart-subtitle">Cognitive reappraisal vs Expressive suppression vs Balanced</div>
+                <div className="chart-subtitle">Cognitive reappraisal vs Expressive suppression</div>
               </div>
             </div>
             <div style={{ height: '280px' }}>
@@ -357,48 +376,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Charts — Row 3: Location + Education */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: '20px', marginBottom: '28px',
-        }}>
-          {/* Top Locations — Bar */}
-          <div className="chart-container red animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
-            <div className="chart-header">
-              <div>
-                <div className="chart-title">📍 Top Locations</div>
-                <div className="chart-subtitle">Where respondents are from (by state/province)</div>
-              </div>
-            </div>
-            <div style={{ height: '250px' }}>
-              {stats?.locationDistribution?.length > 0
-                ? <Bar data={createBarData(stats.locationDistribution, 'state', '#ef4444')} options={barOptions} />
-                : <EmptyChart message="No location data yet" />}
-            </div>
-          </div>
-
-          {/* Education — Doughnut */}
-          <div className="chart-container purple animate-fadeInUp" style={{ animationDelay: '0.6s' }}>
-            <div className="chart-header">
-              <div>
-                <div className="chart-title">🎓 Education Level</div>
-                <div className="chart-subtitle">Academic background of respondents</div>
-              </div>
-            </div>
-            <div style={{ height: '250px' }}>
-              {stats?.educationDistribution?.length > 0
-                ? <Doughnut data={createDoughnutData(stats.educationDistribution, 'education')} options={doughnutOptions} />
-                : <EmptyChart message="No education data yet" />}
-            </div>
-            <CustomLegend data={stats?.educationDistribution} labelKey="education" />
-          </div>
-        </div>
-
-        {/* Respondents Table */}
-        <div className="glass-card" style={{ padding: '24px' }}>
+        <div className="glass-card" style={{ padding: 'clamp(16px, 4vw, 24px)' }}>
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginBottom: '20px', flexWrap: 'wrap', gap: '12px',
+            marginBottom: '20px', flexWrap: 'wrap', gap: '16px',
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
               👥 All Respondents
@@ -409,8 +390,8 @@ export default function DashboardPage() {
             </h3>
             <input
               className="input-field"
-              style={{ maxWidth: '300px', padding: '10px 16px', fontSize: '13px' }}
-              placeholder="🔍 Search by name, email, location..."
+              style={{ maxWidth: '400px', width: '100%', padding: '10px 16px', fontSize: '13px' }}
+              placeholder="🔍 Search name, email, location..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
@@ -422,7 +403,7 @@ export default function DashboardPage() {
               <p>{users.length === 0 ? 'No responses yet. Share your survey to get started!' : 'No results match your search.'}</p>
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', margin: '0 -16px', padding: '0 16px' }}>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -430,12 +411,10 @@ export default function DashboardPage() {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Age</th>
-                    <th>Gender</th>
                     <th>Location</th>
                     <th>Attachment</th>
                     <th>Invalidation</th>
-                    <th>Emotion Reg.</th>
-                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -445,15 +424,34 @@ export default function DashboardPage() {
                       style={{ animation: `fadeInUp 0.3s ease-out ${i * 0.03}s both` }}>
                       <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{i + 1}</td>
                       <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{user.fullName}</td>
-                      <td>{user.email}</td>
+                      <td style={{ fontSize: '12px' }}>{user.email}</td>
                       <td>{user.age}</td>
-                      <td>{user.gender}</td>
-                      <td>{user.city}{user.state ? `, ${user.state}` : ''}</td>
+                      <td style={{ fontSize: '12px' }}>{user.city}{user.state ? `, ${user.state}` : ''}</td>
                       <td>{getBadge(user.attachmentStyle, 'attachment')}</td>
                       <td>{getBadge(user.invalidationLevel, 'invalidation')}</td>
-                      <td style={{ fontSize: '12px' }}>{user.emotionRegulationTendency || '-'}</td>
-                      <td style={{ fontSize: '12px' }}>
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                      <td>
+                        <button 
+                          onClick={(e) => handleDelete(e, user.id)}
+                          disabled={deleting === user.id}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#ef4444',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseOver={e => {
+                            e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                          }}
+                          onMouseOut={e => {
+                            e.target.style.background = 'rgba(239, 68, 68, 0.1)';
+                          }}
+                        >
+                          {deleting === user.id ? '...' : '🗑️ Delete'}
+                        </button>
                       </td>
                     </tr>
                   ))}

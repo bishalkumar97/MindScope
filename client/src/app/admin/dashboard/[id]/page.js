@@ -9,6 +9,7 @@ export default function ResponseDetailPage() {
   const params = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -22,6 +23,31 @@ export default function ResponseDetailPage() {
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, [params.id]);
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this response? This action cannot be undone.')) return;
+    
+    setDeleting(true);
+    try {
+      const res = await fetch(`${API}/responses/${params.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      
+      if (res.ok) {
+        alert('Response deleted successfully');
+        router.push('/admin/dashboard');
+      } else {
+        alert('Failed to delete response');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Error connecting to server');
+    }
+    setDeleting(false);
+  };
 
   if (loading) {
     return (
@@ -66,8 +92,10 @@ export default function ResponseDetailPage() {
       {/* Nav */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 32px', borderBottom: '1px solid var(--border-color)',
+        padding: 'clamp(10px, 3vw, 16px) clamp(16px, 5vw, 32px)', 
+        borderBottom: '1px solid var(--border-color)',
         background: 'rgba(10,10,15,0.8)', backdropFilter: 'blur(12px)',
+        flexWrap: 'wrap', gap: '12px', sticky: 'top', top: 0, zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '24px' }}>🧠</span>
@@ -76,35 +104,54 @@ export default function ResponseDetailPage() {
             background: 'linear-gradient(135deg, var(--blue-primary), var(--purple-accent))',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>MindScope</span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>/ Response Detail</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'none' }}>/ Detail</span>
         </div>
-        <button className="btn-secondary" onClick={() => router.push('/admin/dashboard')}
-          style={{ fontSize: '13px', padding: '8px 20px' }}>
-          ← Back to Dashboard
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-secondary" onClick={() => router.push('/admin/dashboard')}
+            style={{ fontSize: '12px', padding: '6px 16px' }}>
+            ← Back
+          </button>
+          <button 
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#ef4444',
+              padding: '6px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {deleting ? 'Deleting...' : '🗑️ Delete'}
+          </button>
+        </div>
       </nav>
 
-      <div style={{ padding: '32px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1000px', margin: '0 auto' }}>
         {/* User Info Card */}
         <div className="glass-card animate-fadeInUp" style={{
-          padding: '32px', marginBottom: '24px',
+          padding: 'clamp(20px, 5vw, 32px)', marginBottom: '24px',
           display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center',
         }}>
           {/* Avatar */}
           <div style={{
-            width: '80px', height: '80px', borderRadius: '50%',
+            width: 'clamp(60px, 15vw, 80px)', height: 'clamp(60px, 15vw, 80px)', borderRadius: '50%',
             background: 'linear-gradient(135deg, var(--blue-primary), var(--purple-accent))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '32px', fontWeight: 800, flexShrink: 0,
+            fontSize: 'max(24px, 4vw)', fontWeight: 800, flexShrink: 0,
             boxShadow: '0 0 30px rgba(14,165,233,0.3)',
           }}>
             {user.fullName?.charAt(0)?.toUpperCase()}
           </div>
 
-          <div style={{ flex: 1, minWidth: '200px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '4px' }}>{user.fullName}</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{user.email}</p>
-            <div style={{ display: 'flex', gap: '20px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 'min(100%, 250px)' }}>
+            <h2 style={{ fontSize: 'clamp(20px, 5vw, 24px)', fontWeight: 800, marginBottom: '4px' }}>{user.fullName}</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', wordBreak: 'break-all' }}>{user.email}</p>
+            <div style={{ display: 'flex', gap: 'x-small', marginTop: '16px', flexWrap: 'wrap', columnGap: '20px', rowGap: '8px' }}>
               <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                 🎂 Age: <strong style={{ color: 'var(--text-primary)' }}>{user.age}</strong>
               </span>
@@ -115,10 +162,7 @@ export default function ResponseDetailPage() {
                 🎓 Education: <strong style={{ color: 'var(--text-primary)' }}>{user.education}</strong>
               </span>
               <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                💼 Occupation: <strong style={{ color: 'var(--text-primary)' }}>{user.occupation}</strong>
-              </span>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                📍 Location: <strong style={{ color: 'var(--text-primary)' }}>{user.city}, {user.state}</strong>
+                📍 Location: <strong style={{ color: 'var(--text-primary)' }}>{user.city}{user.state ? `, ${user.state}` : ''}</strong>
               </span>
             </div>
           </div>
@@ -126,7 +170,7 @@ export default function ResponseDetailPage() {
 
         {/* Results Summary */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
           gap: '16px', marginBottom: '24px',
         }}>
           <div className="stat-card animate-fadeInUp">
@@ -174,7 +218,7 @@ export default function ResponseDetailPage() {
         </div>
 
         {/* Personality Summary */}
-        <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div className="glass-card" style={{ padding: 'clamp(16px, 4vw, 24px)', marginBottom: '24px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
             📋 Personality Summary
           </h3>
@@ -187,7 +231,7 @@ export default function ResponseDetailPage() {
         {Object.entries(groupedAnswers).map(([sectionKey, sectionAnswers]) => {
           const sectionInfo = sectionLabels[sectionKey] || { title: sectionKey, color: '#0ea5e9' };
           return (
-            <div key={sectionKey} className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+            <div key={sectionKey} className="glass-card" style={{ padding: 'clamp(16px, 4vw, 24px)', marginBottom: '24px' }}>
               <h3 style={{
                 fontSize: '16px', fontWeight: 700, marginBottom: '20px',
                 display: 'flex', alignItems: 'center', gap: '8px',
@@ -198,22 +242,21 @@ export default function ResponseDetailPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {sectionAnswers.map((a, i) => (
                   <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '14px 16px', background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-sm)', gap: '16px',
-                    borderLeft: `3px solid ${sectionInfo.color}`,
+                    display: 'flex', flexDirection: 'column',
+                    padding: '16px', background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)', gap: '12px',
+                    borderLeft: `4px solid ${sectionInfo.color}`,
                   }}>
-                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', flex: 1 }}>
-                      <span style={{ color: sectionInfo.color, fontWeight: 700 }}>
-                        Q{a.questionIndex + 1}.{' '}
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      <span style={{ color: sectionInfo.color, fontWeight: 800, marginRight: '8px' }}>
+                        Q{a.questionIndex + 1}.
                       </span>
                       {a.questionText}
                     </p>
                     <div style={{
-                      padding: '6px 16px', background: `${sectionInfo.color}22`,
-                      borderRadius: '20px', fontSize: '13px', fontWeight: 600,
-                      color: sectionInfo.color, flexShrink: 0, textAlign: 'center',
-                      minWidth: '100px',
+                      padding: '8px 16px', background: `${sectionInfo.color}22`,
+                      borderRadius: '12px', fontSize: '12px', fontWeight: 700,
+                      color: sectionInfo.color, alignSelf: 'flex-start',
                     }}>
                       {a.answer} — {a.answerText}
                     </div>

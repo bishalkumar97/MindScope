@@ -365,7 +365,7 @@ export default function SurveyPage() {
               </div>
 
               {/* Question Card — compact, wide */}
-              <div className="glass-card" style={{
+              <div key={`card_${ansKey}`} className="glass-card" style={{
                 padding: '28px 32px',
                 opacity: animating ? 0 : 1,
                 transform: animating ? 'translateX(40px) scale(0.98)' : 'translateX(0) scale(1)',
@@ -387,16 +387,15 @@ export default function SurveyPage() {
                   <p style={{ fontSize: '17px', fontWeight: 500, lineHeight: 1.6, color: 'var(--text-primary)' }}>{q}</p>
                 </div>
 
-                {/* Scale options — horizontal */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Scale options — responsive via globals.css */}
+                <div key={`opts_${ansKey}`} className="scale-options">
                   {section.scale.map(opt => (
                     <div key={opt.value}
                       className={`scale-option ${selected === opt.value ? 'selected' : ''}`}
                       onClick={() => handleAnswer(section.key, currentQ, opt.value, opt.label)}
-                      style={{ flex: 1, padding: '14px 6px', minWidth: 0 }}
                     >
-                      <div style={{ fontSize: '18px', fontWeight: 700 }}>{opt.value}</div>
-                      <div style={{ fontSize: '10px', marginTop: '3px', lineHeight: 1.2 }}>{opt.label}</div>
+                      <div className="scale-value" style={{ fontSize: '18px', fontWeight: 700 }}>{opt.value}</div>
+                      <div className="scale-label" style={{ fontSize: '12px', lineHeight: 1.2 }}>{opt.label}</div>
                     </div>
                   ))}
                 </div>

@@ -380,4 +380,23 @@ router.get('/export-excel', async (req, res) => {
   }
 });
 
+// ─── Delete individual response ───
+router.delete('/responses/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Delete user, their responses, and their results using the custom id
+    await Promise.all([
+      User.findOneAndDelete({ id: userId }),
+      Response.deleteMany({ userId }),
+      Result.deleteOne({ userId })
+    ]);
+
+    res.json({ success: true, message: 'Response deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting response:', err);
+    res.status(500).json({ error: 'Failed to delete response' });
+  }
+});
+
 module.exports = router;
