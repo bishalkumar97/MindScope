@@ -1,0 +1,19 @@
+{
+  "name": "psychology-survey-server",
+  "version": "1.0.0",
+  "description": "Backend API for Alex's Psychology Survey Website",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "mongoose": "^9.2.1",
+    "uuid": "^10.0.0",
+    "xlsx": "^0.18.5"
+  }
+}
