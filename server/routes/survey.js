@@ -299,15 +299,59 @@ router.get('/check-email/:email', async (req, res) => {
 // ─── Export data as Excel ───
 router.get('/export-excel', async (req, res) => {
   try {
-    // Sheet 1: All respondents with demographics + results
     const users = await User.find().sort({ createdAt: -1 }).lean();
     const results = await Result.find().lean();
+    const allAnswers = await Response.find().sort({ userId: 1, section: 1, questionIndex: 1 }).lean();
+
+    // Map results by userId
     const resultMap = {};
     results.forEach(r => { resultMap[r.userId.toString()] = r; });
 
+    // Pre-generate question headers and mapping keys
+    // Key format: section_index
+    const sections = [
+      { key: 'invalidation', prefix: 'Inv', count: 12 },
+      { key: 'attachment', prefix: 'Att', count: 10 },
+      { key: 'emotion', prefix: 'Emo', count: 10 }
+    ];
+    
+    // Build a map of key -> { header, section, index }
+    // and a map of answer labels per user: { userId: { key: answerText } }
+    const questionInfoMap = {};
+    const questionTextFound = {}; // section_index -> text
+    
+    allAnswers.forEach(a => {
+      const qKey = `${a.section}_${a.questionIndex}`;
+      if (!questionTextFound[qKey]) {
+        questionTextFound[qKey] = a.questionText;
+      }
+    });
+
+    const questionHeaders = []; // The actual Excel column names
+    const orderedKeys = [];    // The keys used to fetch data from users
+    
+    sections.forEach(sec => {
+      for (let i = 0; i < sec.count; i++) {
+        const qKey = `${sec.key}_${i}`;
+        const text = questionTextFound[qKey] || `Question ${i + 1}`;
+        const header = `[${sec.prefix}] Q${i + 1}: ${text}`;
+        questionHeaders.push(header);
+        orderedKeys.push({ qKey, header });
+      }
+    });
+
+    const userAnswersMap = {};
+    allAnswers.forEach(a => {
+      const uid = a.userId.toString();
+      if (!userAnswersMap[uid]) userAnswersMap[uid] = {};
+      userAnswersMap[uid][`${a.section}_${a.questionIndex}`] = a.answerText;
+    });
+
     const summaryData = users.map((u, i) => {
       const r = resultMap[u._id.toString()] || {};
-      return {
+      const uAnswers = userAnswersMap[u._id.toString()] || {};
+      
+      const row = {
         'S.No': i + 1,
         'Full Name': u.fullName,
         'Email': u.email,
@@ -327,10 +371,16 @@ router.get('/export-excel', async (req, res) => {
         'Personality Summary': r.personalitySummary || '',
         'Submitted At': u.createdAt ? new Date(u.createdAt).toISOString() : '',
       };
+
+      // Add each question-answer as a column
+      orderedKeys.forEach(info => {
+        row[info.header] = uAnswers[info.qKey] || '';
+      });
+
+      return row;
     });
 
-    // Sheet 2: All individual answers
-    const allAnswers = await Response.find().sort({ userId: 1, section: 1, questionIndex: 1 }).lean();
+    // Sheet 2: All individual answers (keeping it as requested for detailed rows if needed)
     const userMap = {};
     users.forEach(u => { userMap[u._id.toString()] = u; });
 
@@ -354,12 +404,20 @@ router.get('/export-excel', async (req, res) => {
     const wb = XLSX.utils.book_new();
 
     const ws1 = XLSX.utils.json_to_sheet(summaryData.length > 0 ? summaryData : [{ 'No Data': 'No responses yet' }]);
-    ws1['!cols'] = [
+    
+    // Set column widths for summary sheet (approximate for the many new columns)
+    const summaryCols = [
       { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 5 }, { wch: 10 },
       { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
-      { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 },
+      { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
       { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 50 }, { wch: 22 },
     ];
+    // Add widths for question columns
+    questionHeaders.forEach(() => {
+      summaryCols.push({ wch: 40 });
+    });
+    ws1['!cols'] = summaryCols;
+    
     XLSX.utils.book_append_sheet(wb, ws1, 'Respondent Summary');
 
     const ws2 = XLSX.utils.json_to_sheet(answersData.length > 0 ? answersData : [{ 'No Data': 'No responses yet' }]);
